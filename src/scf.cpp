@@ -125,7 +125,7 @@ int main(int argc, char const *argv[])
     }
     #endif
 
-    float* square_norm = new float[num_users];
+    float* user_norm = new float[num_users];
 
     float** similarity = new float*[num_users];
     for (int i = 0; i < num_users; i++) {
@@ -139,13 +139,13 @@ int main(int argc, char const *argv[])
                 user_square_sum += utility[i][j] * utility[i][j];
             }
         }
-        square_norm[i] = sqrt(user_square_sum);
+        user_norm[i] = sqrt(user_square_sum);
     }
 
     #ifdef DEBUG_1
     cout << "rating normalization: " << endl;
     for (int i = 0; i < num_users; i++) {
-        printf("%.3f\t", square_norm[i]);
+        printf("%.3f\t", user_norm[i]);
         cout << endl;
     }
     #endif
@@ -158,7 +158,7 @@ int main(int argc, char const *argv[])
                     temp_cosine += utility[i][k] * utility[j][k];
                 }
             }
-            similarity[i][j] = similarity[j][i] = temp_cosine / (square_norm[i] * square_norm[j]);
+            similarity[i][j] = similarity[j][i] = temp_cosine / (user_norm[i] * user_norm[j]);
         }
         similarity[i][i] = 1;
     }
