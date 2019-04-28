@@ -143,7 +143,7 @@ int main(int argc, char const *argv[])
     }
 
     #ifdef DEBUG_1
-    cout << "rating normalization: " << endl;
+    cout << "rating norm per user: " << endl;
     for (int i = 0; i < num_users; i++) {
         printf("%.3f\t", user_norm[i]);
         cout << endl;
