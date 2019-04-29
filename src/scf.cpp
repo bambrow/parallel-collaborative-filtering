@@ -102,14 +102,14 @@ int main(int argc, char const *argv[])
         float user_item_sum = 0;
         int user_item_count = 0;
         for (int j = 0; j < num_items; j++) {
-            if (utility[i][j] - missing_rating < 1e-3) {
+            if (abs(utility[i][j] - missing_rating) > 1e-3) {
                 user_item_sum += utility[i][j];
                 user_item_count++;
             }
         }
         float user_average = user_item_sum / user_item_count;
         for (int j = 0; j < num_items; j++) {
-            if (utility[i][j] - missing_rating < 1e-3) {
+            if (abs(utility[i][j] - missing_rating) > 1e-3) {
                 utility[i][j] -= user_average;
             }
         }
@@ -135,7 +135,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < num_users; i++) {
         float user_square_sum = 0;
         for (int j = 0; j < num_items; j++) {
-            if (utility[i][j] - missing_rating < 1e-3) {
+            if (abs(utility[i][j] - missing_rating) > 1e-3) {
                 user_square_sum += utility[i][j] * utility[i][j];
             }
         }
@@ -154,7 +154,7 @@ int main(int argc, char const *argv[])
         for (int j = 0; j < i; j++) {
             float temp_cosine = 0;
             for (int k = 0; k < num_items; k++) {
-                if (utility[i][k] - missing_rating < 1e-3 && utility[j][k] - missing_rating < 1e-3) {
+                if (abs(utility[i][k] - missing_rating) > 1e-3 && abs(utility[j][k] - missing_rating) > 1e-3) {
                     temp_cosine += utility[i][k] * utility[j][k];
                 }
             }
