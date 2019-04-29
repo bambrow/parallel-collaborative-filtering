@@ -3,4 +3,5 @@
 !*.h
 !*.cpp
 !*.txt
-external
+!*.zip
+external/eigen
