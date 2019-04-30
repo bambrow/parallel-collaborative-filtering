@@ -247,13 +247,23 @@ void scf_user(const int& num_users, const int& num_items, float** utility, float
 
                 float denominator = 0;
                 float numerator = 0;
+                vector<int> temp_vec;
+                float temp_sum = 0;
 
                 while (!pq.empty()) {
                     int user = pq.top().id;
                     pq.pop();
+                    temp_vec.push_back(user);
+                    temp_sum += utility[user][k];
+                }
 
+                float avg_similar_users = temp_sum / temp_vec.size();
+
+                for (int l = 0; l < temp_vec.size(); l++){
+                    int user = temp_vec[l];
                     denominator += abs(similarity[i][user]);
-                    numerator += utility[user][k] * similarity[i][user];
+                    numerator += (utility[user][k] - avg_similar_users) * similarity[i][user];
+
                 }
                 if (denominator != 0){
                     filled_utility[i][k] = numerator/denominator;
