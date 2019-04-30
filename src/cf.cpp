@@ -55,3 +55,9 @@ int main(int argc, char const *argv[])
 
     return pcf(filename, item_option);
 }
+
+bool CompareSimTuple::operator()(const SimTuple& p1, const SimTuple& p2)
+{
+    return p1.similarity < p2.similarity;
+}
+

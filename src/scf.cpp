@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <queue>
 #include <math.h>
 
 #include "cf.h"
@@ -10,10 +11,8 @@
 
 using namespace std;
 
-return_code scf(
-    string filename,
-    bool item_option
-) {
+return_code scf(string filename, bool item_option) 
+{
     ifstream in(filename);
     if (!in.is_open()) {
         cout << "File not found: the file does not exist." << endl;
@@ -167,6 +166,65 @@ return_code scf(
         }
         cout << endl;
     }
+    #endif
+
+//    to fill the missing value in the matrix
+    unsigned num_most_similar = NUM_MOST_SIMILAR;
+
+    float** filled_utility = new float*[num_users];
+
+    for (int i = 0; i < num_users; i++) {
+        filled_utility[i] = new float[num_items];
+    }
+
+    for (int i = 0; i < num_users; i++){
+        for (int k = 0; k < num_items; k++){
+            if (abs(utility[i][k] - missing_rating) < 1e-3){
+                priority_queue<SimTuple, vector<SimTuple>, CompareSimTuple> pq;
+
+                for (int l = 0; l < num_users; l++) {
+                    if (l == i) {
+                        continue;
+                    }
+                    if (abs(utility[l][k] - missing_rating) > 1e-3) {
+
+                        pq.push(SimTuple(l, similarity[i][l]));
+
+                        if (pq.size() == num_most_similar + 1) {
+                            pq.pop();
+                        }
+                    }
+                }
+
+                float denominator = 0;
+                float numerator = 0;
+
+                while (!pq.empty()) {
+                    int user = pq.top().id;
+                    pq.pop();
+
+                    denominator += abs(similarity[i][user]);
+                    numerator += utility[user][k] * similarity[i][user];
+                }
+                if (denominator != 0){
+                    filled_utility[i][k] = numerator/denominator;
+                }
+
+            }else{
+                filled_utility[i][k] = utility[i][k];
+            }
+
+        }
+    }
+
+    #ifdef DEBUG_1
+        cout << "filled normalized matrix: " << endl;
+        for (int i = 0; i < num_users; i++) {
+            for (int j = 0; j < num_items; j++) {
+                printf("%.2f\t", filled_utility[i][j]);
+            }
+            cout << endl;
+        }
     #endif
 
     return SUCCESS;
