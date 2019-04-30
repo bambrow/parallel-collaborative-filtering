@@ -14,13 +14,6 @@
 /* constants */
 #define MISSING_RATING 99;
 
-/* command line argument indices */
-enum argv_index {
-    PROGRAM_NAME,
-    FILENAME,
-    NUM_THREADS
-};
-
 /* return codes */
 enum return_code {
      SUCCESS,

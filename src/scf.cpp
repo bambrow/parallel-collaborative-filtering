@@ -6,18 +6,14 @@
 #include <math.h>
 
 #include "cf.h"
+#include "scf.h"
 
 using namespace std;
 
-int main(int argc, char const *argv[])
-{
-    if (argc != 2) {
-        cout << "Usage: ./scf <filename>" << endl;
-        return ILLEGAL_ARGUMENT_NUMBER;
-    }
-
-    const string filename = argv[1];
-
+return_code scf(
+    string filename,
+    bool item_option
+) {
     ifstream in(filename);
     if (!in.is_open()) {
         cout << "File not found: the file does not exist." << endl;
@@ -90,7 +86,7 @@ int main(int argc, char const *argv[])
     cout << "orginal matrix: " << endl;
     for (int i = 0; i < num_users; i++) {
         for (int j = 0; j < num_items; j++) {
-            printf("%.3f\t", utility[i][j]);
+            printf("%.2f\t", utility[i][j]);
         }
         cout << endl;
     }
@@ -119,7 +115,7 @@ int main(int argc, char const *argv[])
     cout << "normalized matrix: " << endl;
     for (int i = 0; i < num_users; i++) {
         for (int j = 0; j < num_items; j++) {
-            printf("%.3f\t", utility[i][j]);
+            printf("%.2f\t", utility[i][j]);
         }
         cout << endl;
     }
@@ -145,7 +141,7 @@ int main(int argc, char const *argv[])
     #ifdef DEBUG_1
     cout << "rating norm per user: " << endl;
     for (int i = 0; i < num_users; i++) {
-        printf("%.3f\t", user_norm[i]);
+        printf("%.2f\t", user_norm[i]);
         cout << endl;
     }
     #endif
@@ -167,7 +163,7 @@ int main(int argc, char const *argv[])
     cout << "similarity matrix: " << endl;
     for (int i = 0; i < num_users; i++) {
         for (int j = 0; j < num_users; j++) {
-            printf("%.3f\t", similarity[i][j]);
+            printf("%.2f\t", similarity[i][j]);
         }
         cout << endl;
     }
