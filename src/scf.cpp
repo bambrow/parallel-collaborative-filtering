@@ -11,10 +11,29 @@
 
 using namespace std;
 
-void scf_user(const int& num_users, const int& num_items, float** utility, float** filled_utility);
-void scf_item(const int& num_users, const int& num_items, float** utility, float** filled_utility);
+void scf_user
+(
+    const int& num_users, 
+    const int& num_items, 
+    float** utility, 
+    float* user_average, 
+    float** filled_utility
+);
 
-return_code scf(string filename, bool item_option) 
+void scf_item
+(
+    const int& num_users, 
+    const int& num_items, 
+    float** utility, 
+    float* user_average, 
+    float** filled_utility
+);
+
+return_code scf
+(
+    string filename, 
+    bool item_option
+) 
 {
     ifstream in(filename);
     if (!in.is_open()) {
@@ -137,9 +156,9 @@ return_code scf(string filename, bool item_option)
     }
 
     if (!item_option) {
-        scf_user(num_users, num_items, utility, filled_utility);
+        scf_user(num_users, num_items, utility, user_average, filled_utility);
     } else {
-        scf_item(num_users, num_items, utility, filled_utility);
+        scf_item(num_users, num_items, utility, user_average, filled_utility);
     }
 
     #ifdef DEBUG_1
@@ -171,7 +190,14 @@ return_code scf(string filename, bool item_option)
     return SUCCESS;
 }
 
-void scf_user(const int& num_users, const int& num_items, float** utility, float** filled_utility) 
+void scf_user
+(
+    const int& num_users, 
+    const int& num_items, 
+    float** utility, 
+    float* user_average, 
+    float** filled_utility
+) 
 {
     float missing_rating = (float) MISSING_RATING;
 
@@ -227,6 +253,12 @@ void scf_user(const int& num_users, const int& num_items, float** utility, float
     unsigned num_most_similar = NUM_MOST_SIMILAR;
 
     for (int i = 0; i < num_users; i++) {
+
+        float user_possible_max = (float) MAX_RATING;
+        user_possible_max -= user_average[i];
+        float user_possible_min = (float) MIN_RATING;
+        user_possible_min -= user_average[i];
+
         for (int k = 0; k < num_items; k++) {
             if (abs(utility[i][k] - missing_rating) < 1e-3) {
                 priority_queue<SimTuple, vector<SimTuple>, CompareSimTuple> pq;
@@ -247,26 +279,18 @@ void scf_user(const int& num_users, const int& num_items, float** utility, float
 
                 float denominator = 0;
                 float numerator = 0;
-                vector<int> temp_vec;
-                float temp_sum = 0;
 
                 while (!pq.empty()) {
                     int user = pq.top().id;
                     pq.pop();
-                    temp_vec.push_back(user);
-                    temp_sum += utility[user][k];
-                }
 
-                float avg_similar_users = temp_sum / temp_vec.size();
-
-                for (int l = 0; l < temp_vec.size(); l++){
-                    int user = temp_vec[l];
                     denominator += abs(similarity[i][user]);
-                    numerator += (utility[user][k] - avg_similar_users) * similarity[i][user];
-
+                    numerator += utility[user][k] * similarity[i][user];
                 }
                 if (denominator != 0){
                     filled_utility[i][k] = numerator/denominator;
+                    filled_utility[i][k] = min(user_possible_max, filled_utility[i][k]);
+                    filled_utility[i][k] = max(user_possible_min, filled_utility[i][k]);
                 }
 
             } else {
@@ -277,7 +301,14 @@ void scf_user(const int& num_users, const int& num_items, float** utility, float
     }
 }
 
-void scf_item(const int& num_users, const int& num_items, float** utility, float** filled_utility) 
+void scf_item
+(
+    const int& num_users, 
+    const int& num_items, 
+    float** utility, 
+    float* user_average, 
+    float** filled_utility
+) 
 {
     float missing_rating = (float) MISSING_RATING;
 
@@ -334,6 +365,12 @@ void scf_item(const int& num_users, const int& num_items, float** utility, float
 
     for (int i = 0; i < num_items; i++) {
         for (int k = 0; k < num_users; k++) {
+
+            float user_possible_max = (float) MAX_RATING;
+            user_possible_max -= user_average[k];
+            float user_possible_min = (float) MIN_RATING;
+            user_possible_min -= user_average[k];
+
             if (abs(utility[k][i] - missing_rating) < 1e-3){
                 priority_queue<SimTuple, vector<SimTuple>, CompareSimTuple> pq;
 
@@ -363,6 +400,8 @@ void scf_item(const int& num_users, const int& num_items, float** utility, float
                 }
                 if (denominator != 0) {
                     filled_utility[k][i] = numerator/denominator;
+                    filled_utility[k][i] = min(user_possible_max, filled_utility[k][i]);
+                    filled_utility[k][i] = max(user_possible_min, filled_utility[k][i]);
                 }
 
             } else {

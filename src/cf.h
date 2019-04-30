@@ -14,6 +14,8 @@
 /* constants */
 #define MISSING_RATING 99;
 #define NUM_MOST_SIMILAR 2;
+#define MAX_RATING 10;
+#define MIN_RATING 1;
 
 /* structs */
 struct SimTuple
