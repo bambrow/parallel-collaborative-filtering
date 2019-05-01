@@ -12,9 +12,13 @@ make CXX=g++-8
 ```
 Then to run the program, use:
 ```
-./cf <filename> <extra_options>
+/cf <filename> <num_threads> <extra_options>
 ```
-Where the extra options are:
+Where the number of threads can be provided in:
+```
+<num_threads> (default is 5) will be ignored when -s option is chosen
+```
+Moreover, the extra options are:
 ```
 -s: this option turns on serial algorithm
 -p: this option (default) turns on parallel algorithm

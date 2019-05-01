@@ -355,7 +355,7 @@ void pcf_item
 (
     const int& num_users, 
     const int& num_items, 
-    float** utility, 
+    float** normalized_utility, 
     float* user_average, 
     float** filled_utility,
     int& num_threads
@@ -370,11 +370,16 @@ void pcf_item
         similarity[i] = new float[num_items];
     }
 
+    #pragma omp parallel for num_threads(num_threads) \
+        default(none) \
+        firstprivate(normalized_utility, num_users, num_items, missing_rating) \
+        shared(item_norm) \
+        schedule(static,1)
     for (int i = 0; i < num_items; i++) {
         float item_square_sum = 0;
         for (int j = 0; j < num_users; j++) {
-            if (abs(utility[j][i] - missing_rating) > 1e-3) {
-                item_square_sum += utility[j][i] * utility[j][i];
+            if (abs(normalized_utility[j][i] - missing_rating) > 1e-3) {
+                item_square_sum += normalized_utility[j][i] * normalized_utility[j][i];
             }
         }
         item_norm[i] = sqrt(item_square_sum);
@@ -388,12 +393,18 @@ void pcf_item
     }
     #endif
 
+    #pragma omp parallel num_threads(num_threads) \
+        default(none) \
+        firstprivate(normalized_utility, item_norm, num_users, num_items, missing_rating) \
+        shared(similarity)
     for (int i = 0; i < num_items; i++) {
+
+        #pragma omp for schedule(static,1)
         for (int j = 0; j < i; j++) {
             float temp_cosine = 0;
             for (int k = 0; k < num_users; k++) {
-                if (abs(utility[k][i] - missing_rating) > 1e-3 && abs(utility[k][j] - missing_rating) > 1e-3) {
-                    temp_cosine += utility[k][i] * utility[k][j];
+                if (abs(normalized_utility[k][i] - missing_rating) > 1e-3 && abs(normalized_utility[k][j] - missing_rating) > 1e-3) {
+                    temp_cosine += normalized_utility[k][i] * normalized_utility[k][j];
                 }
             }
             similarity[i][j] = similarity[j][i] = temp_cosine / (item_norm[i] * item_norm[j]);
@@ -414,7 +425,13 @@ void pcf_item
 //    to fill the missing value in the matrix
     unsigned num_most_similar = NUM_MOST_SIMILAR;
 
+    #pragma omp parallel num_threads(num_threads) \
+        default(none) \
+        firstprivate(normalized_utility, similarity, num_users, num_items, missing_rating, num_most_similar, user_average) \
+        shared(filled_utility)
     for (int i = 0; i < num_items; i++) {
+
+        #pragma omp for schedule(static,1)
         for (int k = 0; k < num_users; k++) {
 
             float user_possible_max = (float) MAX_RATING;
@@ -422,14 +439,14 @@ void pcf_item
             float user_possible_min = (float) MIN_RATING;
             user_possible_min -= user_average[k];
 
-            if (abs(utility[k][i] - missing_rating) < 1e-3){
+            if (abs(normalized_utility[k][i] - missing_rating) < 1e-3){
                 priority_queue<SimTuple, vector<SimTuple>, CompareSimTuple> pq;
 
                 for (int l = 0; l < num_items; l++) {
                     if (l == i) {
                         continue;
                     }
-                    if (abs(utility[k][l] - missing_rating) > 1e-3) {
+                    if (abs(normalized_utility[k][l] - missing_rating) > 1e-3) {
 
                         pq.push(SimTuple(l, similarity[i][l]));
 
@@ -447,7 +464,7 @@ void pcf_item
                     pq.pop();
 
                     denominator += abs(similarity[i][item]);
-                    numerator += utility[k][item] * similarity[i][item];
+                    numerator += normalized_utility[k][item] * similarity[i][item];
                 }
                 if (denominator != 0) {
                     filled_utility[k][i] = numerator/denominator;
@@ -456,7 +473,7 @@ void pcf_item
                 }
 
             } else {
-                filled_utility[k][i] = utility[k][i];
+                filled_utility[k][i] = normalized_utility[k][i];
             }
 
         }
