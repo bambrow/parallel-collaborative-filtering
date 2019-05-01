@@ -9,6 +9,7 @@
 
 return_code pcf(
     std::string filename,
+    int num_threads,
     bool item_option
 );
 

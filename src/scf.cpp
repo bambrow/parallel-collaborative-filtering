@@ -68,12 +68,12 @@ return_code scf
     const int num_items = temp_num_items;
 
     if (num_users <= 1) {
-        cout << "Illegal argument: number of users must be greater than 1." << endl;
-        return ILLEGAL_ARGUMENT;
+        cout << "Illegal file format: number of users must be greater than 1." << endl;
+        return ILLEGAL_FILE_FORMAT;
     }
     if (num_items < 1) {
-        cout << "Illegal argument: number of items must be greater than 0." << endl;
-        return ILLEGAL_ARGUMENT;
+        cout << "Illegal file format: number of items must be greater than 0." << endl;
+        return ILLEGAL_FILE_FORMAT;
     }
 
     float** utility = new float*[num_users];
