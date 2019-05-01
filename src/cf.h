@@ -5,15 +5,12 @@
 #define cf_h
 
 /* debug flags */
-#define DEBUG_1
+// #define DEBUG_1
 #define DEBUG_2
-#define DEBUG_3
-#define DEBUG_4
-#define DEBUG_5
 
 /* constants */
 #define MISSING_RATING 99;
-#define NUM_MOST_SIMILAR 2;
+#define NUM_MOST_SIMILAR 5;
 #define MAX_RATING 10;
 #define MIN_RATING 1;
 

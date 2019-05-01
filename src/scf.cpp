@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 #include <queue>
 #include <math.h>
 
@@ -186,6 +187,20 @@ return_code scf
             cout << endl;
         }
     #endif
+
+    string trunc_filename = filename.substr(0, filename.find_last_of("."));
+    string output_filename = trunc_filename + "_output.txt";
+    ofstream out(output_filename);
+    if (out.is_open()) {
+        out << num_users << endl;
+        out << num_items << endl;
+        for (int i = 0; i < num_users; i++) {
+            for (int j = 0; j < num_items; j++) {
+                out << fixed << setprecision(2) << filled_utility[i][j] << " ";
+            }
+            out << endl;
+        }
+    }
 
     return SUCCESS;
 }
