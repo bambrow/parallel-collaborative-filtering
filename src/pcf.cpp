@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include <queue>
-#include <math.h>
+#include <cmath>
 #include <omp.h>
 
 #include "cf.h"
