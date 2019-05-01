@@ -6,7 +6,8 @@
 
 /* debug flags */
 // #define DEBUG_1
-#define DEBUG_2
+// #define DEBUG_2
+// #define DEBUG_3
 
 /* constants */
 #define MISSING_RATING 99;
@@ -14,7 +15,7 @@
 #define MAX_RATING 10;
 #define MIN_RATING 1;
 
-/* structs */
+/* similarity tuple struct */
 struct SimTuple
 {
     SimTuple(int id, float similarity)
@@ -23,6 +24,7 @@ struct SimTuple
     float similarity;
 };
 
+/* similarity tuple comparator */
 struct CompareSimTuple {
     bool operator()(const SimTuple& p1, const SimTuple& p2);
 };

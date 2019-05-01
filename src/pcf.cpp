@@ -1,4 +1,4 @@
-
+/* parallel_collaborative_filtering.cpp */
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -13,23 +13,25 @@
 
 using namespace std;
 
+/* user-user parallel collaborative filtering */
 void pcf_user
 (
     const int& num_users, 
     const int& num_items, 
-    float** normalized_utility, 
-    float* user_average, 
-    float** filled_utility,
+    float** normalized_utility, // utility matrix
+    float* user_average, // average rating per user
+    float** filled_utility, // utility matrix to fill
     int& num_threads
 );
 
+/* item-item parallel collaborative filtering */
 void pcf_item
 (
     const int& num_users, 
     const int& num_items, 
-    float** normalized_utility, 
-    float* user_average, 
-    float** filled_utility,
+    float** normalized_utility, // utility matrix
+    float* user_average, // average rating per user
+    float** filled_utility, // utility matrix to fill
     int& num_threads
 );
 
@@ -37,9 +39,10 @@ return_code pcf
 (
     string filename,
     int num_threads, 
-    bool item_option
+    bool item_option // true to use item-item 
 ) 
 {
+    // open the file and read contents
     ifstream in(filename);
     if (!in.is_open()) {
         cout << "File not found: the file does not exist." << endl;
@@ -47,6 +50,7 @@ return_code pcf
     }
     string line;
 
+    // parse the num_users and num_items
     int temp_num_users, temp_num_items;
     try { 
         if (!getline(in, line)) {
@@ -81,6 +85,7 @@ return_code pcf
         return ILLEGAL_FILE_FORMAT;
     }
 
+    // fill the utility matrix from file
     float** utility = new float*[num_users];
     for (int i = 0; i < num_users; i++) {
         utility[i] = new float[num_items];
@@ -127,6 +132,7 @@ return_code pcf
         normalized_utility[i] = new float[num_items];
     }
 
+    // calculate user rating average
     #pragma omp parallel for num_threads(num_threads) \
         default(none) \
         firstprivate(utility, num_users, num_items, missing_rating) \
@@ -145,6 +151,7 @@ return_code pcf
         user_average[i] = user_avg;
     }
 
+    // normalize utility matrix
     #pragma omp parallel num_threads(num_threads) \
         default(none) \
         firstprivate(num_users, num_items, utility, missing_rating, user_average) \
@@ -182,13 +189,14 @@ return_code pcf
         filled_utility[i] = new float[num_items];
     }
 
+    // user-user or item-item based on switch
     if (!item_option) {
         pcf_user(num_users, num_items, normalized_utility, user_average, filled_utility, num_threads);
     } else {
         pcf_item(num_users, num_items, normalized_utility, user_average, filled_utility, num_threads);
     }
 
-    #ifdef DEBUG_1
+    #ifdef DEBUG_3
         cout << "filled normalized matrix: " << endl;
         for (int i = 0; i < num_users; i++) {
             for (int j = 0; j < num_items; j++) {
@@ -198,6 +206,7 @@ return_code pcf
         }
     #endif
 
+    // construct the filled utility matrix
     #pragma omp parallel num_threads(num_threads) \
         default(none) \
         firstprivate(num_users, num_items, user_average) \
@@ -210,7 +219,7 @@ return_code pcf
         }
     }
 
-    #ifdef DEBUG_1
+    #ifdef DEBUG_3
         cout << "filled original matrix: " << endl;
         for (int i = 0; i < num_users; i++) {
             for (int j = 0; j < num_items; j++) {
@@ -220,6 +229,7 @@ return_code pcf
         }
     #endif
 
+    // output filled utility matrix to file
     string trunc_filename = filename.substr(0, filename.find_last_of("."));
     string output_filename = trunc_filename + "_output.txt";
     ofstream out(output_filename);
@@ -233,6 +243,7 @@ return_code pcf
             out << endl;
         }
     }
+    out.close();
 
     return SUCCESS;
 }
@@ -256,6 +267,7 @@ void pcf_user
         similarity[i] = new float[num_users];
     }
 
+    // compute the rating norm per user
     #pragma omp parallel for num_threads(num_threads) \
         default(none) \
         firstprivate(normalized_utility, num_users, num_items, missing_rating) \
@@ -279,6 +291,7 @@ void pcf_user
     }
     #endif
 
+    // compute similarity between users
     #pragma omp parallel num_threads(num_threads) \
         default(none) \
         firstprivate(normalized_utility, user_norm, num_users, num_items, missing_rating) \
@@ -298,7 +311,7 @@ void pcf_user
         similarity[i][i] = 1;
     }
 
-    #ifdef DEBUG_1
+    #ifdef DEBUG_2
     cout << "similarity matrix: " << endl;
     for (int i = 0; i < num_users; i++) {
         for (int j = 0; j < num_users; j++) {
@@ -308,7 +321,7 @@ void pcf_user
     }
     #endif
 
-//    to fill the missing value in the matrix
+    // fill the missing value in the normalized matrix
     unsigned num_most_similar = NUM_MOST_SIMILAR;
 
     #pragma omp parallel num_threads(num_threads) \
@@ -385,6 +398,7 @@ void pcf_item
         similarity[i] = new float[num_items];
     }
 
+    // compute the rating norm per item
     #pragma omp parallel for num_threads(num_threads) \
         default(none) \
         firstprivate(normalized_utility, num_users, num_items, missing_rating) \
@@ -408,6 +422,7 @@ void pcf_item
     }
     #endif
 
+    // compute similarity between items
     #pragma omp parallel num_threads(num_threads) \
         default(none) \
         firstprivate(normalized_utility, item_norm, num_users, num_items, missing_rating) \
@@ -427,7 +442,7 @@ void pcf_item
         similarity[i][i] = 1;
     }
 
-    #ifdef DEBUG_1
+    #ifdef DEBUG_2
     cout << "similarity matrix: " << endl;
     for (int i = 0; i < num_items; i++) {
         for (int j = 0; j < num_items; j++) {
@@ -437,7 +452,7 @@ void pcf_item
     }
     #endif
 
-//    to fill the missing value in the matrix
+    // fill the missing value in the normalized matrix
     unsigned num_most_similar = NUM_MOST_SIMILAR;
 
     #pragma omp parallel num_threads(num_threads) \

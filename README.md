@@ -12,7 +12,7 @@ make CXX=g++-8
 ```
 Then to run the program, use:
 ```
-/cf <filename> <num_threads> <extra_options>
+./cf <filename> <num_threads> <extra_options>
 ```
 Where the number of threads can be provided in:
 ```

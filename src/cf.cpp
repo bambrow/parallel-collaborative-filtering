@@ -1,4 +1,4 @@
-
+/* collaborative_filtering.cpp */
 #include <iostream>
 #include <string>
 
@@ -7,6 +7,8 @@
 #include "pcf.h"
 
 using namespace std;
+
+/* main function */
 
 int main(int argc, char const *argv[])
 {
@@ -17,10 +19,6 @@ int main(int argc, char const *argv[])
         cout << "-p: this option (default) turns on parallel algorithm" << endl;
         cout << "-i: this option turns on item-item similarity" << endl;
         cout << "-u: this option (default) turns on user-user similarity" << endl;
-        // cout << "-m<missing_number>: this option redefines the missing number indicator (default is 99)" << endl;
-        // cout << "-k<num_similar>: this option redefines the maximum number of similar users (or items) when predicting the rating (default is 2)" << endl;
-        // cout << "-min<min_rating>: this option redefines the minimum rating (default is 1)" << endl;
-        // cout << "-max<max_rating>: this option redefines the maximum rating (default is 10)" << endl;
         cout << "Examples: " << endl;
         cout << "./cf <filename> -s" << endl;
         cout << "./cf <filename> 5" << endl;
@@ -29,12 +27,13 @@ int main(int argc, char const *argv[])
         return ILLEGAL_ARGUMENT_NUMBER;
     }
 
-    const string filename = argv[1];
+    const string filename = argv[1]; // parse filename
 
-    bool serial_option = false;
-    bool item_option = false;
-    int num_threads = 5;
+    bool serial_option = false; // default is parallel
+    bool item_option = false; // default is user-user
+    int num_threads = 5; // default number of threads
 
+    // parse additional command line arguments
     if (argc > 2) {
         for (int i = 2; i < argc; i++) {
             string cur_arg = argv[i];
@@ -69,6 +68,8 @@ int main(int argc, char const *argv[])
 
     return pcf(filename, num_threads, item_option);
 }
+
+/* similarity tuple comparator */
 
 bool CompareSimTuple::operator()(const SimTuple& p1, const SimTuple& p2)
 {

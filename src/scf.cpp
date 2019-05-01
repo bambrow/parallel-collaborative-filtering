@@ -1,4 +1,4 @@
-
+/* serial_collaborative_filtering.cpp */
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -12,30 +12,33 @@
 
 using namespace std;
 
+/* user-user serial collaborative filtering */
 void scf_user
 (
     const int& num_users, 
     const int& num_items, 
-    float** utility, 
-    float* user_average, 
-    float** filled_utility
+    float** utility, // utility matrix
+    float* user_average, // average rating per user
+    float** filled_utility // utility matrix to fill
 );
 
+/* item-item serial collaborative filtering */
 void scf_item
 (
     const int& num_users, 
     const int& num_items, 
-    float** utility, 
-    float* user_average, 
-    float** filled_utility
+    float** utility, // utility matrix
+    float* user_average, // average rating per user
+    float** filled_utility // utility matrix to fill
 );
 
 return_code scf
 (
     string filename, 
-    bool item_option
+    bool item_option // true to use item-item 
 ) 
 {
+    // open the file and read contents
     ifstream in(filename);
     if (!in.is_open()) {
         cout << "File not found: the file does not exist." << endl;
@@ -43,6 +46,7 @@ return_code scf
     }
     string line;
 
+    // parse the num_users and num_items
     int temp_num_users, temp_num_items;
     try { 
         if (!getline(in, line)) {
@@ -77,6 +81,7 @@ return_code scf
         return ILLEGAL_FILE_FORMAT;
     }
 
+    // fill the utility matrix from file
     float** utility = new float*[num_users];
     for (int i = 0; i < num_users; i++) {
         utility[i] = new float[num_items];
@@ -118,6 +123,7 @@ return_code scf
 
     float missing_rating = (float) MISSING_RATING;
 
+    // normalize utility matrix
     for (int i = 0; i < num_users; i++) {
         float user_item_sum = 0;
         int user_item_count = 0;
@@ -156,13 +162,14 @@ return_code scf
         filled_utility[i] = new float[num_items];
     }
 
+    // user-user or item-item based on switch
     if (!item_option) {
         scf_user(num_users, num_items, utility, user_average, filled_utility);
     } else {
         scf_item(num_users, num_items, utility, user_average, filled_utility);
     }
 
-    #ifdef DEBUG_1
+    #ifdef DEBUG_3
         cout << "filled normalized matrix: " << endl;
         for (int i = 0; i < num_users; i++) {
             for (int j = 0; j < num_items; j++) {
@@ -172,13 +179,14 @@ return_code scf
         }
     #endif
 
+    // construct the filled utility matrix
     for (int i = 0; i < num_users; i++) {
         for (int j = 0; j < num_items; j++) {
             filled_utility[i][j] += user_average[i];
         }
     }
 
-    #ifdef DEBUG_1
+    #ifdef DEBUG_3
         cout << "filled original matrix: " << endl;
         for (int i = 0; i < num_users; i++) {
             for (int j = 0; j < num_items; j++) {
@@ -188,6 +196,7 @@ return_code scf
         }
     #endif
 
+    // output filled utility matrix to file
     string trunc_filename = filename.substr(0, filename.find_last_of("."));
     string output_filename = trunc_filename + "_output.txt";
     ofstream out(output_filename);
@@ -201,6 +210,7 @@ return_code scf
             out << endl;
         }
     }
+    out.close();
 
     return SUCCESS;
 }
@@ -223,6 +233,7 @@ void scf_user
         similarity[i] = new float[num_users];
     }
 
+    // compute the rating norm per user
     for (int i = 0; i < num_users; i++) {
         float user_square_sum = 0;
         for (int j = 0; j < num_items; j++) {
@@ -241,6 +252,7 @@ void scf_user
     }
     #endif
 
+    // compute similarity between users
     for (int i = 0; i < num_users; i++) {
         for (int j = 0; j < i; j++) {
             float temp_cosine = 0;
@@ -254,7 +266,7 @@ void scf_user
         similarity[i][i] = 1;
     }
 
-    #ifdef DEBUG_1
+    #ifdef DEBUG_2
     cout << "similarity matrix: " << endl;
     for (int i = 0; i < num_users; i++) {
         for (int j = 0; j < num_users; j++) {
@@ -264,7 +276,7 @@ void scf_user
     }
     #endif
 
-//    to fill the missing value in the matrix
+    // fill the missing value in the normalized matrix
     unsigned num_most_similar = NUM_MOST_SIMILAR;
 
     for (int i = 0; i < num_users; i++) {
@@ -334,6 +346,7 @@ void scf_item
         similarity[i] = new float[num_items];
     }
 
+    // compute the rating norm per item
     for (int i = 0; i < num_items; i++) {
         float item_square_sum = 0;
         for (int j = 0; j < num_users; j++) {
@@ -352,6 +365,7 @@ void scf_item
     }
     #endif
 
+    // compute similarity between items
     for (int i = 0; i < num_items; i++) {
         for (int j = 0; j < i; j++) {
             float temp_cosine = 0;
@@ -365,7 +379,7 @@ void scf_item
         similarity[i][i] = 1;
     }
 
-    #ifdef DEBUG_1
+    #ifdef DEBUG_2
     cout << "similarity matrix: " << endl;
     for (int i = 0; i < num_items; i++) {
         for (int j = 0; j < num_items; j++) {
@@ -375,7 +389,7 @@ void scf_item
     }
     #endif
 
-//    to fill the missing value in the matrix
+    // fill the missing value in the normalized matrix
     unsigned num_most_similar = NUM_MOST_SIMILAR;
 
     for (int i = 0; i < num_items; i++) {

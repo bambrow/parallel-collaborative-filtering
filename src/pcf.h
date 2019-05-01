@@ -1,3 +1,4 @@
+/* parallel_collaborative_filtering.h */
 #pragma once
 
 #include <string>
@@ -7,6 +8,7 @@
 #ifndef pcf_h
 #define pcf_h
 
+/* parallel collaborative filtering */
 return_code pcf(
     std::string filename,
     int num_threads,
